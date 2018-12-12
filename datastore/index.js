@@ -62,7 +62,7 @@ exports.update = (id, text, callback) => {
         }
       });
     }
-  })
+  });
 };
 
 exports.delete = (id, callback) => {
