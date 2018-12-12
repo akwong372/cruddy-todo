@@ -8,17 +8,11 @@ var items = {};
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
-  // var id = counter.getNextUniqueId(function(err, something ) {});
-  // items[id] = text;
-  // // callback(null, { id, text });
-  // console.log(id);
   counter.getNextUniqueId((error, id)=> {
-    //console.log('current', id);
     if (error) {
       throw new Error("Error: ", error);
     }
     fs.writeFile(this.dataDir + '/' + id + '.txt', text, (error)=>{
-      // console.log(error);
       if(error) {
         callback(error);
       } else {
@@ -29,11 +23,18 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  var data = [];
-  _.each(items, (text, id) => {
-    data.push({ id, text });
-  });
-  callback(null, data);
+  fs.readdir(this.dataDir, (error, files)=>{
+    if(error) {
+      callback(error);
+    } else {
+      var data = [];
+      _.each(files, (id) => {
+        data.push({ 'id': id.split('.txt').join(''), 'text': id.split('.txt').join('') });
+      });
+      callback(null, data);
+    }
+  })
+
 };
 
 exports.readOne = (id, callback) => {
