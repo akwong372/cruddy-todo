@@ -8,10 +8,24 @@ var items = {};
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
-  var id = counter.getNextUniqueId(function(err, something ) {});
-  items[id] = text;
-  // callback(null, { id, text });
-  console.log(id);
+  // var id = counter.getNextUniqueId(function(err, something ) {});
+  // items[id] = text;
+  // // callback(null, { id, text });
+  // console.log(id);
+  counter.getNextUniqueId((error, id)=> {
+    //console.log('current', id);
+    if (error) {
+      throw new Error("Error: ", error);
+    }
+    fs.writeFile(this.dataDir + '/' + id + '.txt', text, (error)=>{
+      // console.log(error);
+      if(error) {
+        callback(error);
+      } else {
+        callback(null, { id, text });
+      }
+    });
+  });
 };
 
 exports.readAll = (callback) => {
