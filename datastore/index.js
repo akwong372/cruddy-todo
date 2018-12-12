@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+var Promise = require('bluebird');
+Promise.promisifyAll(fs);
 
 var items = {};
 
@@ -23,18 +25,46 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  fs.readdir(this.dataDir, (error, files) => {
-    if (error) {
-      callback(error);
-    } else {
-      var data = [];
-      _.each(files, (id) => {
-        data.push({ 'id': id.split('.txt').join(''), 'text': id.split('.txt').join('') });
-      });
-      callback(null, data);
-    }
-  });
+  return new Promise((resolve, reject) => {
+    fs.readdir(this.dataDir, (error, data) => {
+      if (error) {
+        callback(error);
+      }
 
+      resolve(data);
+    })
+  }).then((fileNames)=>{
+    var mapped = Promise.map(fileNames, (fileName)=> {
+      // Promise.map awaits for returned promises as well.
+        return fs.readFile(this.dataDir + '/' + fileName, 'utf8', (err, content)=>{
+          JSON.stringify({id: fileName.split('.txt').join(''), text: content});
+        });
+      })
+    Promise.all(mapped).then((data)=>{console.log(data)});
+  })
+    // .then(function (data) {
+    //   var check = data.map((uri)=>{
+    //     return fs.readFile(this.dataDir + '/' + uri, 'utf8', (err, fileData)=>{
+    //       if (err) {
+    //         throw new Error ('Error');
+    //       }
+    //       return fileData;
+    //     })
+    //   });
+    //   Promise.all(check).then((result)=> console.log(result));
+    // })
+    // (error, files) => {
+    //   if (error) {
+    //     reject(error);
+    //   } else {
+    //     var data = [];
+    //     _.each(files, (id) => {
+    //       data.push({ 'id': id.split('.txt').join(''), 'text': id.split('.txt').join('') });
+    //     });
+    //     console.log('--------------data:', data)
+    //     resolve(data);
+    //   }
+    // });
 };
 
 exports.readOne = (id, callback) => {
@@ -66,7 +96,7 @@ exports.update = (id, text, callback) => {
 };
 
 exports.delete = (id, callback) => {
-  fs.unlink(this.dataDir + '/' + id + '.txt', (err)=>{
+  fs.unlink(this.dataDir + '/' + id + '.txt', (err) => {
     if (err) {
       callback(err);
     } else {
