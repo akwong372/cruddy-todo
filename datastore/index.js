@@ -33,17 +33,20 @@ exports.readAll = (callback) => {
       });
       callback(null, data);
     }
-  })
+  });
 
 };
 
 exports.readOne = (id, callback) => {
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+
+  fs.readFile(this.dataDir + '/' + id + '.txt', 'utf8', (error, content)=>{
+    if ( error ) {
+      callback(error);
+    } else {
+      callback(null, {id, 'text': content});
+    }
+  })
+
 };
 
 exports.update = (id, text, callback) => {
