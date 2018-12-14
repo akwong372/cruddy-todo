@@ -25,46 +25,14 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  return new Promise((resolve, reject) => {
-    fs.readdir(this.dataDir, (error, data) => {
-      if (error) {
-        callback(error);
-      }
-
-      resolve(data);
-    })
-  }).then((fileNames)=>{
-    var mapped = Promise.map(fileNames, (fileName)=> {
-      // Promise.map awaits for returned promises as well.
-        return fs.readFile(this.dataDir + '/' + fileName, 'utf8', (err, content)=>{
-          JSON.stringify({id: fileName.split('.txt').join(''), text: content});
-        });
-      })
-    Promise.all(mapped).then((data)=>{console.log(data)});
+  return fs.readdirAsync(this.dataDir).map(fileName => {
+    return fs.readFileAsync(`${this.dataDir}/${fileName}`, 'utf8')
+      .then(fileData => {
+        return {id: fileName.split('.txt')[0], text: fileData};
+      });
   })
-    // .then(function (data) {
-    //   var check = data.map((uri)=>{
-    //     return fs.readFile(this.dataDir + '/' + uri, 'utf8', (err, fileData)=>{
-    //       if (err) {
-    //         throw new Error ('Error');
-    //       }
-    //       return fileData;
-    //     })
-    //   });
-    //   Promise.all(check).then((result)=> console.log(result));
-    // })
-    // (error, files) => {
-    //   if (error) {
-    //     reject(error);
-    //   } else {
-    //     var data = [];
-    //     _.each(files, (id) => {
-    //       data.push({ 'id': id.split('.txt').join(''), 'text': id.split('.txt').join('') });
-    //     });
-    //     console.log('--------------data:', data)
-    //     resolve(data);
-    //   }
-    // });
+  .then(content=>
+    callback(null, content));
 };
 
 exports.readOne = (id, callback) => {
